@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun Card(modifier: Modifier = Modifier, elevation: Int = 4, content: @Composable () -> Unit) {
+fun BlankCard(modifier: Modifier = Modifier, elevation: Int = 4, content: @Composable () -> Unit) {
     Surface(
         modifier = modifier,
         shadowElevation = elevation.dp,

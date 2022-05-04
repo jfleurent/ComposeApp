@@ -69,19 +69,14 @@ fun RoundIconButton(
 }
 
 @Composable
-fun FavoriteButton(modifier: Modifier, size: Int = 48, onClick: () -> Unit = {}) {
-    var favored by remember { mutableStateOf(false) }
-    fun onFavored(){
-        favored = !favored
-        onClick.invoke()
-    }
+fun FavoriteButton(modifier: Modifier, size: Int = 48, favored : Boolean,onClick: () -> Unit = {}) {
     RoundIconButton(
         modifier = modifier,
         size = size,
         painter = painterResource(id = if (!favored) R.drawable.ic_not_favorite else R.drawable.ic_favorite),
         contentDescription = "Favorite",
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 3.dp),
-        buttonPress = { onFavored() }
+        buttonPress = onClick
     )
 }
 

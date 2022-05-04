@@ -2,6 +2,7 @@ package com.example.composeapp.ui.view.components
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.composeapp.R
 import com.example.composeapp.ui.theme.ComposeAppTheme
+import kotlinx.coroutines.selects.select
 
 sealed class TabItem {
     data class TextTabItem(
@@ -49,10 +51,9 @@ sealed class TabItem {
 @Composable
 fun Tab(
     tabItem: TabItem.TextTabItem,
-    onTabClick: () -> Unit = {}
 ) {
     Button(
-        onClick = { onTabItemClick(tabItem.onClick, onTabClick) },
+        onClick = tabItem.onClick ,
         colors = buttonColors(containerColor = Color.Transparent)
     ) {
         Column(
@@ -77,11 +78,10 @@ fun Tab(
 
 @Composable
 fun ImageTab(
-    tabItem: TabItem.ImageTabItem,
-    onTabClick: () -> Unit = {}
+    tabItem: TabItem.ImageTabItem
 ) {
     Button(
-        onClick = { onTabItemClick(tabItem.onClick, onTabClick) },
+        onClick = tabItem.onClick ,
         colors = buttonColors(containerColor = Color.Transparent)
     ) {
         Column(
@@ -114,27 +114,27 @@ private fun onTabItemClick(onClick: () -> Unit, onTabClick: () -> Unit) {
 @Composable
 fun TabRow(
     items: List<TabItem>,
+    selectedLabel: String = "",
     modifier: Modifier = Modifier,
-) {
-    var tabIndex by remember { mutableStateOf(0) }
-    Row(modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.Center) {
-        items.forEachIndexed { index, tabItem ->
-            when (tabItem) {
-                is TabItem.TextTabItem ->
-                    Tab(
-                        tabItem = tabItem.apply { selected = index == tabIndex },
-                    )
-                    {
-                        tabIndex = index
-                    }
-                is TabItem.ImageTabItem ->
-                    ImageTab(
-                        tabItem = tabItem.apply { selected = index == tabIndex },
-                    ) {
-                        tabIndex = index
-                    }
+    onTabSelected: (String, List<TabItem>) -> Unit = { selected, list ->
+        list.forEach {
+            when (it) {
+                is TabItem.ImageTabItem -> it.selected = it.label == selected
+                is TabItem.TextTabItem -> it.selected = it.label == selected
             }
-
+        }
+    }
+) {
+    Row(
+        modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        onTabSelected.invoke(selectedLabel, items)
+        items.forEach { tabItem ->
+            when (tabItem) {
+                is TabItem.TextTabItem -> Tab(tabItem)
+                is TabItem.ImageTabItem -> ImageTab(tabItem)
+            }
         }
     }
 }

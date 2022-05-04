@@ -1,86 +1,82 @@
 package com.example.composeapp.ui.view.page
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material3.ButtonDefaults.buttonColors
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import coil.compose.rememberAsyncImagePainter
 import com.example.composeapp.R
-import com.example.composeapp.datasource.Article
+import com.example.composeapp.datasource.model.Article
 import com.example.composeapp.ui.theme.ComposeAppTheme
 import com.example.composeapp.ui.view.*
 import com.example.composeapp.ui.view.components.*
 import com.example.composeapp.util.ellipsis
+import com.example.composeapp.util.toLocalDataTime
+import com.example.composeapp.viewmodel.HomePageViewModel
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import okhttp3.internal.wait
 
 const val HOME_PAGE = "HomePage"
-
-@Composable
-fun AppBar(modifier: Modifier = Modifier) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(modifier)
-    ) {
-        ImageButton(
-            modifier = Modifier
-                .padding(8.dp)
-                .align(Alignment.TopStart),
-            size = 32,
-            painter = painterResource(id = R.drawable.ic_nav_drawer),
-            description = "Nav Drawer"
-        )
-        ImageButton(
-            modifier = Modifier
-                .padding(8.dp)
-                .align(Alignment.TopEnd),
-            size = 32,
-            painter = painterResource(id = R.drawable.ic_search),
-            description = "Search"
-        )
-    }
-}
-
 
 @Composable
 fun ArticleItemList(
     articles: List<Article>,
     height: Int,
     width: Int,
-    navController: NavController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigate: (Article) -> Unit,
+    onFavorite: (Article) -> Unit
 ) {
-    Row(
+    LazyRow(
         modifier = Modifier
-            .horizontalScroll(rememberScrollState())
             .padding(0.dp, 8.dp, 0.dp, 0.dp)
             .then(modifier)
     ) {
         articles.forEach {
-            ArticleItem(height = height, width = width, article = it, navController = navController)
+            item(key = it.primaryKey) {
+                ArticleItem(
+                    height = height,
+                    width = width,
+                    article = it,
+                    onNavigate = onNavigate,
+                    onFavorite = onFavorite
+                )
+            }
         }
     }
 }
 
 
 @Composable
-fun ArticleCard(modifier: Modifier, article: Article) {
+fun ArticleCard(
+    modifier: Modifier,
+    article: Article,
+    onFavorite: (Article) -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(4))
@@ -89,19 +85,22 @@ fun ArticleCard(modifier: Modifier, article: Article) {
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             ArticleAuthor(
-                name = article.author,
-                timeCreated = article.timeCreated,
-                authorImagePainter = painterResource(id = R.drawable.download)
+                name = article.author ?: "",
+                timeCreated = article.publishedAt?.toLocalDataTime(),
+                authorImagePainter = painterResource(id = R.drawable.download),
+                authorImageSize = 64,
+                maxAuthorNameLength = 20
             )
             FavoriteButton(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(0.dp, 8.dp, 16.dp, 0.dp)
-            )
+                    .padding(0.dp, 8.dp, 16.dp, 0.dp),
+                favored = article.favorite
+            ) { onFavorite.invoke(article) }
         }
-        ArticleTitle(title = article.title.ellipsis(30))
+        ArticleTitle(title = article.title?.ellipsis(30) ?: "")
         ArticleContent(
-            message = (article.contents
+            message = (article.content
                 ?: stringResource(id = R.string.message_string)).ellipsis(30),
             modifier = Modifier.padding(8.dp)
         )
@@ -109,82 +108,86 @@ fun ArticleCard(modifier: Modifier, article: Article) {
 }
 
 
-
 @Composable
 fun ArticleCardWithImage(
     article: Article,
-    navController: NavController,
-    size : Int,
-    modifier: Modifier = Modifier
+    size: Int,
+    modifier: Modifier = Modifier,
+    onNavigate: (Article) -> Unit,
+    onFavorite: (Article) -> Unit
 ) {
     Box(modifier = modifier) {
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(4))
                 .clipToBounds()
-                .clickable {
-                    navController.navigate(ARTICLE_PAGE) {
-                        launchSingleTop = true
-                    }
-                }
+                .clickable { onNavigate.invoke(article) }
                 .background(color = if (isSystemInDarkTheme()) Color.Black else Color.White)
                 .align(Alignment.CenterEnd)
                 .width(size.dp)
                 .padding(0.dp, 0.dp, 0.dp, 16.dp)
         ) {
-            Column(modifier = Modifier.padding((size/3).dp, 0.dp, 0.dp, 0.dp)) {
+            Column(modifier = Modifier.padding((size / 3).dp, 0.dp, 0.dp, 0.dp)) {
                 Box(Modifier.fillMaxWidth()) {
                     ArticleAuthor(
-                        name = article.author,
-                        timeCreated = article.timeCreated,
+                        name = article.author ?: "",
+                        timeCreated = article.publishedAt?.toLocalDataTime(),
                         authorImagePainter = painterResource(id = R.drawable.download)
                     )
                     FavoriteButton(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(0.dp, 8.dp, 16.dp, 0.dp),
-                        size = (size/11.25).toInt()
-                    )
+                        size = (size / 11.25).toInt(),
+                        favored = article.favorite
+                    ) {
+                        onFavorite.invoke(article)
+                    }
                 }
-                ArticleTitle(title = article.title.ellipsis(20))
+                ArticleTitle(title = article.title?.ellipsis(20) ?: "")
                 ArticleContent(
-                    message = (article.contents
+                    message = (article.content
                         ?: stringResource(id = R.string.message_string)).ellipsis(20),
                     modifier = Modifier.padding(8.dp)
                 )
             }
         }
-        Card {
+        BlankCard {
             Image(
-                painter = painterResource(id = R.drawable.android_background),
+                painter = article.urlToImage?.let { rememberAsyncImagePainter(it) }
+                    ?: painterResource(
+                        id = R.drawable.android_background
+                    ),
                 contentDescription = "Background",
                 modifier = Modifier
-                    .size((size/3).dp, (size * .38).dp)
+                    .size((size / 3).dp, (size * .38).dp)
                     .clip(RoundedCornerShape(4))
                     .align(Alignment.TopStart),
                 contentScale = ContentScale.FillBounds
             )
         }
-
     }
-
 }
 
 
 @Composable
-fun ArticleItem(height: Int, width: Int, article: Article, navController: NavController) {
+fun ArticleItem(
+    height: Int,
+    width: Int,
+    article: Article,
+    onNavigate: (Article) -> Unit,
+    onFavorite: (Article) -> Unit
+) {
     Box(
         modifier = Modifier
             .size(width.dp, height.dp)
             .padding(8.dp)
-            .clickable {
-                navController.navigate(ARTICLE_PAGE) {
-                    launchSingleTop = true
-                }
-            }
+            .clickable { onNavigate.invoke(article) }
     ) {
         Image(
-            painter = painterResource(id = R.drawable.android_background),
+            painter = article.urlToImage?.let { rememberAsyncImagePainter(it) } ?: painterResource(
+                id = R.drawable.android_background
+            ),
             contentDescription = "Background",
             modifier = Modifier
                 .clip(RoundedCornerShape(4))
@@ -196,22 +199,28 @@ fun ArticleItem(height: Int, width: Int, article: Article, navController: NavCon
                 .size((width * .9).dp, (height * .6).dp)
                 .background(color = if (isSystemInDarkTheme()) Color.Black else Color.White)
                 .align(Alignment.BottomCenter),
-            article = article
+            article = article,
+            onFavorite = onFavorite
         )
     }
 }
 
 
 @Composable
-fun RecommendedList(articles: List<Article>, navController: NavController) {
+fun RecommendedList(
+    articles: List<Article>,
+    onNavigate: (Article) -> Unit,
+    onFavorite: (Article) -> Unit
+) {
     articles.forEach {
         ArticleCardWithImage(
             article = it,
-            navController = navController,
             size = 360,
             modifier = Modifier
                 .height(176.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            onFavorite = onFavorite,
+            onNavigate = onNavigate
         )
         Row(
             modifier = Modifier
@@ -223,85 +232,82 @@ fun RecommendedList(articles: List<Article>, navController: NavController) {
 }
 
 @Composable
-fun BottomNavigation(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(96.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .background(color = if (isSystemInDarkTheme()) Color.Black else Color.White)
-                .fillMaxWidth()
-                .height(64.dp)
-                .align(Alignment.BottomCenter)
-        ) {}
-        TabRow(
-            items = listOf(
-                TabItem.ImageTabItem(painter = painterResource(id = R.drawable.ic_home)),
-                TabItem.ImageTabItem(painter = painterResource(id = R.drawable.ic_shopping)),
-                TabItem.ImageTabItem(painter = painterResource(id = R.drawable.ic_alert)),
-                TabItem.ImageTabItem(painter = painterResource(id = R.drawable.ic_profile))
-            ),
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
-
-        RoundIconButton(
-            size = 48,
-            painter = painterResource(id = R.drawable.ic_add),
-            modifier = Modifier
-                .padding(32.dp, 0.dp, 32.dp, 32.dp)
-                .align(Alignment.BottomCenter),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 3.dp),
-            colors = buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-        )
-    }
-}
-
-
-@Composable
-fun HomePage(navController: NavController) {
-    Box() {
-        Column(
-            modifier = Modifier
-                .padding(8.dp)
-                .align(Alignment.TopCenter)
-                .verticalScroll(rememberScrollState())
-                .padding(0.dp, 0.dp, 0.dp, 64.dp)
-        ) {
-            AppBar()
-            TabRow(
-                items = listOf(
-                    TabItem.TextTabItem(label = "Latest", textSize = 20),
-                    TabItem.TextTabItem(label = "Decorative", textSize = 20),
-                    TabItem.TextTabItem(label = "Music", textSize = 20),
-                    TabItem.TextTabItem(label = "Style", textSize = 20),
-                    TabItem.TextTabItem(label = "Technology", textSize = 20),
-                    TabItem.TextTabItem(label = "Business", textSize = 20),
+fun HomePage(
+    navController: NavController,
+    homePageViewModel: HomePageViewModel? = null,
+) {
+    val state: State<HomePageViewModel.UiState> = homePageViewModel?.state?.collectAsState()
+        ?: remember {
+            mutableStateOf(
+                HomePageViewModel.UiState(
+                    latestFeed = listOf(testArticle, testArticle, testArticle),
+                    recommendedFeed = listOf(testArticle, testArticle, testArticle)
                 )
             )
-            ArticleItemList(
-                articles = listOf(article, article, article),
-                height = 240,
-                width = 360,
-                navController = navController
-            )
-            Text(
-                text = "Recommended",
-                fontSize = 20.sp,
-                fontWeight = Bold,
-                modifier = Modifier.padding(16.dp)
-            )
-            RecommendedList(
-                articles = listOf(article, article, article, article, article, article),
-                navController = navController
-            )
         }
-        BottomNavigation(modifier = Modifier.align(Alignment.BottomCenter))
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+    ) {
+        TabRow(
+            selectedLabel = state.value.activeTab.label,
+            items = listOf(
+                TabItem.TextTabItem(
+                    label = "Latest",
+                    textSize = 20,
+                    onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.LATEST) }),
+                TabItem.TextTabItem(
+                    label = "Decorative",
+                    textSize = 20,
+                    onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.DECORATIVE) }),
+                TabItem.TextTabItem(
+                    label = "Music",
+                    textSize = 20,
+                    onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.MUSIC) }),
+                TabItem.TextTabItem(
+                    label = "Style",
+                    textSize = 20,
+                    onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.STYLE) }),
+                TabItem.TextTabItem(
+                    label = "Technology",
+                    textSize = 20,
+                    onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.TECHNOLOGY) }),
+                TabItem.TextTabItem(
+                    label = "Business",
+                    textSize = 20,
+                    onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.BUSINESS) }),
+            )
+        )
+        ArticleItemList(
+            articles = state.value.latestFeed,
+            height = 240,
+            width = 360,
+            onNavigate = {
+                navController.navigate("$HOME_PAGE/${it.primaryKey}") {
+                    launchSingleTop = true
+                }
+            },
+            onFavorite = {
+                homePageViewModel?.favoriteArticle(it)
+            })
+        Text(
+            text = "Recommended",
+            fontSize = 20.sp,
+            fontWeight = Bold,
+            modifier = Modifier.padding(16.dp)
+        )
+        RecommendedList(
+            articles = state.value.recommendedFeed,
+            onNavigate = {
+                navController.navigate("$HOME_PAGE/${it.primaryKey}") {
+                    launchSingleTop = true
+                }
+            },
+            onFavorite = {
+                homePageViewModel?.favoriteArticle(it)
+            })
     }
-
 }
-
 
 @Preview(
     showBackground = true,

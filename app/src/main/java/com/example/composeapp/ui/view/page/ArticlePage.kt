@@ -1,13 +1,10 @@
 package com.example.composeapp.ui.view.page
 
-import android.os.Build
-import androidx.annotation.DrawableRes
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
@@ -17,23 +14,35 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 import com.example.composeapp.R
-import com.example.composeapp.datasource.Article
+import com.example.composeapp.datasource.model.Article
 import com.example.composeapp.ui.theme.ComposeAppTheme
-import com.example.composeapp.ui.view.article
 import com.example.composeapp.ui.view.components.BackButton
 import com.example.composeapp.ui.view.components.FavoriteButton
 import com.example.composeapp.ui.view.components.RoundCornerImage
 import com.example.composeapp.ui.view.components.RoundImage
+import com.example.composeapp.ui.view.testArticle
+import com.example.composeapp.util.ellipsis
+import com.example.composeapp.util.toLocalDataTime
+import com.example.composeapp.viewmodel.ArticlePageViewModel
+import com.example.composeapp.viewmodel.HomePageViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-const val ARTICLE_PAGE = "ArticlePage"
+const val ARTICLE_PATH = "article"
+const val ARTICLE_PAGE_PATH = "$HOME_PAGE/{$ARTICLE_PATH}"
 
 @Composable
 fun AppBar(
     height: Int,
     painter: Painter,
+    article: Article? = null,
+    onFavorite: (Article) -> Unit = {},
     backPress: () -> Unit = {}
 ) {
     Box(Modifier.height(height.dp)) {
@@ -44,8 +53,9 @@ fun AppBar(
         FavoriteButton(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(0.dp, 0.dp, 16.dp, 0.dp)
-        )
+                .padding(0.dp, 0.dp, 16.dp, 0.dp),
+            favored = article?.favorite ?: false
+        ) { article?.run(onFavorite) }
         BackButton(
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -80,25 +90,29 @@ fun ArticleTitle(
 fun ArticleAuthor(
     name: String,
     timeCreated: LocalDateTime?,
-    authorImagePainter: Painter
+    authorImagePainter: Painter,
+    authorImageSize: Int = 48,
+    maxAuthorNameLength: Int = 10
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
         RoundImage(
             painter = authorImagePainter, modifier = Modifier
-                .size(64.dp)
-                .padding(8.dp)
+                .size(authorImageSize.dp)
+                .padding(4.dp)
         )
         Column {
             Row(
                 modifier = Modifier.padding(8.dp, 0.dp, 0.dp, 0.dp)
             ) {
-                Text(text = "By ")
-                Text(
-                    text = name,
-                    fontWeight = FontWeight.Bold
-                )
+                if (name.isNotBlank()) {
+                    Text(text = "By ")
+                    Text(
+                        text = name.ellipsis(maxAuthorNameLength),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
             Text(
                 text = (timeCreated ?: LocalDateTime.now()).format(
@@ -126,35 +140,48 @@ fun ArticleContent(message: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun ArticlePage(
-    article: Article,
-    painter: Painter? = null,
+    articleId: Long,
+    articlePageViewModel: ArticlePageViewModel? = null,
     backPress: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier.verticalScroll(ScrollState(0))
     ) {
+        val state: State<ArticlePageViewModel.UiState> =
+            articlePageViewModel?.state?.collectAsState() ?: remember {
+                mutableStateOf(ArticlePageViewModel.UiState(testArticle))
+            }
+        articlePageViewModel?.getArticle(articleId)
         AppBar(
             height = 280,
-            painter = painter ?: painterResource(id = R.drawable.android_background),
-            backPress = backPress
+            painter = state.value.article.urlToImage?.let
+            { rememberAsyncImagePainter(it) } ?: painterResource(
+                id = R.drawable.android_background
+            ),
+            onFavorite = {
+                articlePageViewModel?.favoriteArticle(it)
+            },
+            backPress = backPress,
+            article = state.value.article,
         )
         ArticleTitle(
-            title = article.title,
+            title = state.value.article.title ?: "",
             textSize = 24,
             modifier = Modifier.padding(0.dp, 24.dp, 0.dp, 0.dp)
         )
         ArticleAuthor(
-            name = article.author,
-            timeCreated = article.timeCreated ?: LocalDateTime.now(),
-            authorImagePainter = painterResource(id = R.drawable.download)
+            name = state.value.article.author ?: "",
+            timeCreated = state.value.article.publishedAt?.toLocalDataTime() ?: LocalDateTime.now(),
+            authorImagePainter = painterResource(id = R.drawable.download),
+            authorImageSize = 64,
+            maxAuthorNameLength = 20
         )
         ArticleContent(
-            message = article.contents ?: stringResource(id = R.string.message_string),
+            message = state.value.article.content ?: "",
             modifier = Modifier.padding(16.dp)
         )
     }
 }
-
 
 @Preview(
     showBackground = true,
@@ -163,6 +190,6 @@ fun ArticlePage(
 @Composable
 fun DefaultArticlePreview() {
     ComposeAppTheme {
-        ArticlePage(article)
+        ArticlePage(-1)
     }
 }
