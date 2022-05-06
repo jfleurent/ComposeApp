@@ -102,4 +102,8 @@ class ArticleRepository(
     override suspend fun updateArticle(article: Article){
         articleDao.updateArticle(article)
     }
+
+    override fun searchArticles(searchTerm: String, tag: String): List<Article> {
+        return articleDao.getLocalSearchFlow(searchTerm, tag)
+    }
 }

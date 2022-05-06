@@ -7,35 +7,43 @@ import com.example.composeapp.datasource.model.Article
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-abstract class ArticleDao {
-
-    @Insert(onConflict = REPLACE) 
-    abstract suspend fun insertArticle(article: Article)
+interface ArticleDao {
 
     @Insert(onConflict = REPLACE)
-    abstract suspend fun insertArticles(articles : List<Article>)
+    suspend fun insertArticle(article: Article)
+
+    @Insert(onConflict = REPLACE)
+    suspend fun insertArticles(articles: List<Article>)
 
     @Query("SELECT * FROM Article")
-    abstract fun getArticlesFlow() : Flow<List<Article>>
+    fun getArticlesFlow(): Flow<List<Article>>
 
     @Query("SELECT * FROM Article WHERE primaryKey = :primaryKey")
-    abstract fun getArticleWithIdFlow(primaryKey : Long) : Flow<Article>
+    fun getArticleWithIdFlow(primaryKey: Long): Flow<Article>
 
     @Update
-    abstract fun updateArticle(article: Article)
+    fun updateArticle(article: Article)
 
     @Query("SELECT * FROM Article WHERE tag = :tag")
-    abstract fun getArticlesWithTagFlow(tag : String) : Flow<List<Article>>
+    fun getArticlesWithTagFlow(tag: String): Flow<List<Article>>
 
     @Query("SELECT * FROM Article WHERE favorite = 1")
-    abstract fun getFavoriteArticlesFlow() : Flow<List<Article>>
+    fun getFavoriteArticlesFlow(): Flow<List<Article>>
 
     @Query("SELECT * FROM Article")
-    abstract suspend fun getArticles() :List<Article>
+    suspend fun getArticles(): List<Article>
 
     @Query("SELECT * FROM Article WHERE tag = :tag")
-    abstract suspend fun getArticlesWithTag(tag : String) : List<Article>
+    suspend fun getArticlesWithTag(tag: String): List<Article>
 
     @Query("SELECT * FROM Article WHERE favorite = 1")
-    abstract suspend fun getFavoriteArticles() : List<Article>
+    suspend fun getFavoriteArticles(): List<Article>
+
+    @Query("SELECT * " +
+            "FROM Article " +
+            "WHERE tag = :tag " +
+            "AND (title LIKE :searchTerm " +
+            "OR content LIKE :searchTerm " +
+            "OR author LIKE :searchTerm) ")
+    fun getLocalSearchFlow(searchTerm: String, tag: String): List<Article>
 }

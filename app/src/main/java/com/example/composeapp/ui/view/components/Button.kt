@@ -18,7 +18,7 @@ import com.example.composeapp.R
 
 @Composable
 fun ImageButton(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     size: Int,
     painter: Painter,
     description: String = "",

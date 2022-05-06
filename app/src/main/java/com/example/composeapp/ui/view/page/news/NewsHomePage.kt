@@ -1,12 +1,11 @@
-package com.example.composeapp.ui.view.page
+package com.example.composeapp.ui.view.page.news
 
-import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,17 +13,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import coil.compose.rememberAsyncImagePainter
 import com.example.composeapp.R
 import com.example.composeapp.datasource.model.Article
@@ -34,12 +30,9 @@ import com.example.composeapp.ui.view.components.*
 import com.example.composeapp.util.ellipsis
 import com.example.composeapp.util.toLocalDataTime
 import com.example.composeapp.viewmodel.HomePageViewModel
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
-import okhttp3.internal.wait
+import com.example.composeapp.viewmodel.LandingPageViewModel
 
-const val HOME_PAGE = "HomePage"
+const val NEWS_HOME_PAGE = "NewsHomePage"
 
 @Composable
 fun ArticleItemList(
@@ -55,8 +48,8 @@ fun ArticleItemList(
             .padding(0.dp, 8.dp, 0.dp, 0.dp)
             .then(modifier)
     ) {
-        articles.forEach {
-            item(key = it.primaryKey) {
+        articles.forEachIndexed { index, it ->
+            item(key = "${it.primaryKey}_$index") {
                 ArticleItem(
                     height = height,
                     width = width,
@@ -76,7 +69,6 @@ fun ArticleCard(
     article: Article,
     onFavorite: (Article) -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(4))
@@ -124,10 +116,13 @@ fun ArticleCardWithImage(
                 .clickable { onNavigate.invoke(article) }
                 .background(color = if (isSystemInDarkTheme()) Color.Black else Color.White)
                 .align(Alignment.CenterEnd)
-                .width(size.dp)
-                .padding(0.dp, 0.dp, 0.dp, 16.dp)
+                .fillMaxWidth(.95f)
+                .padding(8.dp)
         ) {
-            Column(modifier = Modifier.padding((size / 3).dp, 0.dp, 0.dp, 0.dp)) {
+            Column(
+                modifier = Modifier
+                    .padding((size / 3).dp, 0.dp, 0.dp, 0.dp)
+            ) {
                 Box(Modifier.fillMaxWidth()) {
                     ArticleAuthor(
                         name = article.author ?: "",
@@ -218,23 +213,25 @@ fun RecommendedList(
             size = 360,
             modifier = Modifier
                 .height(176.dp)
+                .padding(8.dp, 0.dp, 8.dp, 0.dp)
                 .fillMaxWidth(),
             onFavorite = onFavorite,
             onNavigate = onNavigate
         )
-        Row(
+        Spacer(
             modifier = Modifier
                 .height(16.dp)
                 .background(MaterialTheme.colorScheme.background)
                 .fillMaxWidth()
-        ) {}
+        )
     }
 }
 
 @Composable
-fun HomePage(
+fun NewsHomePage(
     navController: NavController,
     homePageViewModel: HomePageViewModel? = null,
+    landingPageViewModel: LandingPageViewModel? = null
 ) {
     val state: State<HomePageViewModel.UiState> = homePageViewModel?.state?.collectAsState()
         ?: remember {
@@ -245,67 +242,74 @@ fun HomePage(
                 )
             )
         }
-    Column(
-        modifier = Modifier
-            .verticalScroll(rememberScrollState())
-    ) {
-        TabRow(
-            selectedLabel = state.value.activeTab.label,
-            items = listOf(
-                TabItem.TextTabItem(
-                    label = "Latest",
-                    textSize = 20,
-                    onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.LATEST) }),
-                TabItem.TextTabItem(
-                    label = "Decorative",
-                    textSize = 20,
-                    onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.DECORATIVE) }),
-                TabItem.TextTabItem(
-                    label = "Music",
-                    textSize = 20,
-                    onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.MUSIC) }),
-                TabItem.TextTabItem(
-                    label = "Style",
-                    textSize = 20,
-                    onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.STYLE) }),
-                TabItem.TextTabItem(
-                    label = "Technology",
-                    textSize = 20,
-                    onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.TECHNOLOGY) }),
-                TabItem.TextTabItem(
-                    label = "Business",
-                    textSize = 20,
-                    onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.BUSINESS) }),
+    LazyColumn {
+        item {
+            TabRow(
+                selectedLabel = state.value.activeTab.label,
+                items = listOf(
+                    TabItem.TextTabItem(
+                        label = "Latest",
+                        textSize = 20,
+                        onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.LATEST) }),
+                    TabItem.TextTabItem(
+                        label = "Decorative",
+                        textSize = 20,
+                        onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.DECORATIVE) }),
+                    TabItem.TextTabItem(
+                        label = "Music",
+                        textSize = 20,
+                        onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.MUSIC) }),
+                    TabItem.TextTabItem(
+                        label = "Style",
+                        textSize = 20,
+                        onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.STYLE) }),
+                    TabItem.TextTabItem(
+                        label = "Technology",
+                        textSize = 20,
+                        onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.TECHNOLOGY) }),
+                    TabItem.TextTabItem(
+                        label = "Business",
+                        textSize = 20,
+                        onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.BUSINESS) }),
+                )
             )
-        )
-        ArticleItemList(
-            articles = state.value.latestFeed,
-            height = 240,
-            width = 360,
-            onNavigate = {
-                navController.navigate("$HOME_PAGE/${it.primaryKey}") {
-                    launchSingleTop = true
-                }
-            },
-            onFavorite = {
-                homePageViewModel?.favoriteArticle(it)
-            })
-        Text(
-            text = "Recommended",
-            fontSize = 20.sp,
-            fontWeight = Bold,
-            modifier = Modifier.padding(16.dp)
-        )
-        RecommendedList(
-            articles = state.value.recommendedFeed,
-            onNavigate = {
-                navController.navigate("$HOME_PAGE/${it.primaryKey}") {
-                    launchSingleTop = true
-                }
-            },
-            onFavorite = {
-                homePageViewModel?.favoriteArticle(it)
-            })
+        }
+        item {
+            ArticleItemList(
+                articles = state.value.latestFeed,
+                height = 240,
+                width = 360,
+                onNavigate = {
+                    landingPageViewModel?.pushCurrentState()
+                    navController.navigate("$NEWS_HOME_PAGE/${it.primaryKey}") {
+                        launchSingleTop = true
+                    }
+                },
+                onFavorite = {
+                    homePageViewModel?.favoriteArticle(it)
+                })
+        }
+        item {
+            Text(
+                text = "Recommended",
+                fontSize = 20.sp,
+                fontWeight = Bold,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+        item {
+            RecommendedList(
+                articles = state.value.recommendedFeed,
+                onNavigate = {
+                    landingPageViewModel?.pushCurrentState()
+                    navController.navigate("$NEWS_HOME_PAGE/${it.primaryKey}") {
+                        launchSingleTop = true
+                    }
+                },
+                onFavorite = {
+                    homePageViewModel?.favoriteArticle(it)
+                })
+        }
     }
 }
 
@@ -317,6 +321,6 @@ fun HomePage(
 fun DefaultHomePreview() {
     ComposeAppTheme {
         val navController = rememberNavController()
-        HomePage(navController = navController)
+        NewsHomePage(navController = navController)
     }
 }

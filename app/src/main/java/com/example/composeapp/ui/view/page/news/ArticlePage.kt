@@ -1,4 +1,4 @@
-package com.example.composeapp.ui.view.page
+package com.example.composeapp.ui.view.page.news
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.*
@@ -9,7 +9,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,16 +25,11 @@ import com.example.composeapp.ui.view.testArticle
 import com.example.composeapp.util.ellipsis
 import com.example.composeapp.util.toLocalDataTime
 import com.example.composeapp.viewmodel.ArticlePageViewModel
-import com.example.composeapp.viewmodel.HomePageViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 const val ARTICLE_PATH = "article"
-const val ARTICLE_PAGE_PATH = "$HOME_PAGE/{$ARTICLE_PATH}"
+const val ARTICLE_PAGE_PATH = "$NEWS_HOME_PAGE/{$ARTICLE_PATH}"
 
 @Composable
 fun AppBar(

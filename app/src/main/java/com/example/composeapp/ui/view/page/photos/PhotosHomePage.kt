@@ -1,4 +1,4 @@
-package com.example.composeapp.ui.view.page
+package com.example.composeapp.ui.view.page.photos
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,10 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
-const val PROFILE_PAGE = "ProfilePage"
+const val PHOTO_HOME_PAGE = "PhotoHomePage"
+
 @Composable
-fun ProfilePage(){
-    Box(modifier = Modifier.fillMaxSize()){
-        Text(text = PROFILE_PAGE, modifier = Modifier.align(Alignment.Center))
+fun PhotoHomePage() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Text(text = PHOTO_HOME_PAGE, modifier = Modifier.align(Alignment.Center))
     }
 }

@@ -13,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.composeapp.datasource.model.Article
 import com.example.composeapp.ui.theme.ComposeAppTheme
 import com.example.composeapp.ui.view.page.*
+import com.example.composeapp.ui.view.page.news.ArticlePage
 import com.example.composeapp.viewmodel.ArticlePageViewModel
 import com.example.composeapp.viewmodel.HomePageViewModel
 import com.example.composeapp.viewmodel.LandingPageViewModel
@@ -26,15 +27,15 @@ val testArticle = Article(
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val articlePageViewModel: ArticlePageViewModel by viewModels()
+    private val homePageViewModel: HomePageViewModel by viewModels()
+    private val landingPageViewModel : LandingPageViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ComposeAppTheme {
                 // A surface container using the 'background' color from the theme
-                val articlePageViewModel: ArticlePageViewModel by viewModels()
-                val homePageViewModel: HomePageViewModel by viewModels()
-                val landingPageViewModel: LandingPageViewModel by viewModels()
-
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -49,6 +50,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        landingPageViewModel.onBack()
     }
 }
 

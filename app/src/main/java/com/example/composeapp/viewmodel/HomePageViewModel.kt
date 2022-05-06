@@ -55,6 +55,23 @@ class HomePageViewModel @Inject constructor(private val repository: IArticleRepo
         }
     }
 
+    fun searchArticles(searchTerm: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                if (searchTerm.isEmpty()) {
+                    setActiveTab(state.value.activeTab)
+                } else {
+                    latestFeed.value =
+                        repository.searchArticles("%$searchTerm%", state.value.activeTab.label)
+                    recommendedFeed.value = repository.searchArticles(
+                        "%$searchTerm%",
+                        "recommended_${state.value.activeTab.label}"
+                    )
+                }
+            }
+        }
+    }
+
     private fun getRecommendedArticles(
         query: String,
         from: String = toISO8601String(LocalDateTime.now()),
@@ -121,7 +138,7 @@ class HomePageViewModel @Inject constructor(private val repository: IArticleRepo
         }
     }
 
-    enum class TabPage(val label : String) {
+    enum class TabPage(val label: String) {
         LATEST("Latest"),
         DECORATIVE("Decorative"),
         MUSIC("Music"),
