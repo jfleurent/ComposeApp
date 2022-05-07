@@ -1,5 +1,6 @@
 package com.example.composeapp.ui.view.page
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -66,13 +67,14 @@ fun LandingPage(
                                 icon = painterResource(id = R.drawable.ic_news),
                                 label = LandingPageViewModel.TopLevelPage.NEWS.label,
                                 onClick = {
-                                    landingPageViewModel?.pushCurrentState()
+                                    landingPageViewModel?.pushCurrentState(LandingPageViewModel.TopLevelPage.NEWS.label)
                                     landingPageViewModel?.setCurrentPage(LandingPageViewModel.TopLevelPage.NEWS)
-                                    navController.navigate(
-                                        state.value.tabbedPageState
-                                            .newsPageTabState.destination
-                                    ) {
-                                        launchSingleTop = true
+                                    state.value.currentPageState.currentTab?.run {
+                                        navController.navigate(
+                                            destination
+                                        ) {
+                                            launchSingleTop = true
+                                        }
                                     }
                                 }
                             ),
@@ -80,7 +82,7 @@ fun LandingPage(
                                 icon = painterResource(id = R.drawable.ic_movie),
                                 label = LandingPageViewModel.TopLevelPage.MOVIE.label,
                                 onClick = {
-                                    landingPageViewModel?.pushCurrentState()
+                                    landingPageViewModel?.pushCurrentState(LandingPageViewModel.TopLevelPage.MOVIE.label)
                                     landingPageViewModel?.setCurrentPage(LandingPageViewModel.TopLevelPage.MOVIE)
                                     navController.navigate(MOVIE_HOME_PAGE) {
                                         launchSingleTop = true
@@ -91,7 +93,7 @@ fun LandingPage(
                                 icon = painterResource(id = R.drawable.ic_photos),
                                 label = LandingPageViewModel.TopLevelPage.PHOTOS.label,
                                 onClick = {
-                                    landingPageViewModel?.pushCurrentState()
+                                    landingPageViewModel?.pushCurrentState(LandingPageViewModel.TopLevelPage.PHOTOS.label)
                                     landingPageViewModel?.setCurrentPage(LandingPageViewModel.TopLevelPage.PHOTOS)
                                     navController.navigate(PHOTO_HOME_PAGE) {
                                         launchSingleTop = true
@@ -104,7 +106,7 @@ fun LandingPage(
                                 icon = painterResource(id = R.drawable.ic_music),
                                 label = LandingPageViewModel.TopLevelPage.MUSIC.label,
                                 onClick = {
-                                    landingPageViewModel?.pushCurrentState()
+                                    landingPageViewModel?.pushCurrentState(LandingPageViewModel.TopLevelPage.MUSIC.label)
                                     landingPageViewModel?.setCurrentPage(LandingPageViewModel.TopLevelPage.MUSIC)
                                     navController.navigate(MUSIC_HOME_PAGE) {
                                         launchSingleTop = true
@@ -117,7 +119,7 @@ fun LandingPage(
                                 icon = painterResource(id = R.drawable.ic_setting),
                                 label = LandingPageViewModel.TopLevelPage.SETTINGS.label,
                                 onClick = {
-                                    landingPageViewModel?.pushCurrentState()
+                                    landingPageViewModel?.pushCurrentState(LandingPageViewModel.TopLevelPage.SETTINGS.label)
                                     landingPageViewModel?.setCurrentPage(LandingPageViewModel.TopLevelPage.SETTINGS)
                                     navController.navigate(SETTINGS_PAGE) {
                                         launchSingleTop = true
@@ -142,9 +144,9 @@ fun LandingPage(
                         onTextChange = { landingPageViewModel?.setSearchText(it) },
                         onVisibilityChange = { landingPageViewModel?.setSearchViewVisible(!it) },
                         onSearch = {
-                            when (state.value.currentPageState) {
+                            when (state.value.currentPageState.page) {
                                 LandingPageViewModel.TopLevelPage.NEWS -> homePageViewModel?.searchArticles(
-                                    state.value.searchFieldState.searchText
+                                    it
                                 )
                                 else -> {}
                             }
@@ -154,19 +156,24 @@ fun LandingPage(
                 },
                 bottomBar = {
                     if (state.value.appbarState.bottomVarVisible)
-                        when (state.value.currentPageState) {
-                            LandingPageViewModel.TopLevelPage.NEWS -> NewsBottomNavigation(
-                                selectedLabel = state.value.tabbedPageState.newsPageTabState.name,
-                                onTabSelected = {
-                                    landingPageViewModel?.setActiveTab(it)
-                                    landingPageViewModel?.pushCurrentState()
-                                },
-                                onNavigate = {
-                                    navController.navigate(it) {
-                                        launchSingleTop = true
+                        when (state.value.currentPageState.page) {
+                            LandingPageViewModel.TopLevelPage.NEWS -> {
+                                NewsBottomNavigation(
+                                    selectedLabel = state.value.currentPageState.currentTab.name,
+                                    onTabSelected = {
+                                        landingPageViewModel?.pushCurrentState(
+                                            it.destination
+                                        )
+                                        landingPageViewModel?.setActiveTab(it)
+                                    },
+                                    onNavigate = {
+                                        navController.navigate(it) {
+                                            launchSingleTop = true
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
+
                             else -> {}
                         }
                 },
@@ -287,7 +294,7 @@ fun AppBar(
     visible: Boolean,
     onTextChange: (String) -> Unit,
     onVisibilityChange: (Boolean) -> Unit,
-    onSearch: () -> Unit,
+    onSearch: (String) -> Unit,
     onDrawerOpen: () -> Unit
 ) {
     Box(

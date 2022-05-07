@@ -1,5 +1,6 @@
 package com.example.composeapp.ui.view.components
 
+import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -23,7 +24,7 @@ fun SearchTextField(
     visible : Boolean,
     onTextChange : (String) -> Unit,
     onVisibilityChange : (Boolean) -> Unit,
-    onSearch: () -> Unit
+    onSearch: (String) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     Box(modifier = modifier) {
@@ -51,7 +52,7 @@ fun SearchTextField(
                 label = { Text(text = "Search") },
                 keyboardActions = KeyboardActions(onAny = {
                     focusManager.clearFocus()
-                    onSearch()
+                    onSearch(searchText)
                 }),
                 trailingIcon = {
                     ImageButton(

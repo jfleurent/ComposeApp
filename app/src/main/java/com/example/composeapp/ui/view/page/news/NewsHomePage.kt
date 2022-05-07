@@ -32,7 +32,7 @@ import com.example.composeapp.util.toLocalDataTime
 import com.example.composeapp.viewmodel.HomePageViewModel
 import com.example.composeapp.viewmodel.LandingPageViewModel
 
-const val NEWS_HOME_PAGE = "NewsHomePage"
+const val NEWS_HOME_PAGE = "News"
 
 @Composable
 fun ArticleItemList(
@@ -280,7 +280,7 @@ fun NewsHomePage(
                 height = 240,
                 width = 360,
                 onNavigate = {
-                    landingPageViewModel?.pushCurrentState()
+                    landingPageViewModel?.pushCurrentState(ARTICLE_PAGE_PATH)
                     navController.navigate("$NEWS_HOME_PAGE/${it.primaryKey}") {
                         launchSingleTop = true
                     }
@@ -301,7 +301,7 @@ fun NewsHomePage(
             RecommendedList(
                 articles = state.value.recommendedFeed,
                 onNavigate = {
-                    landingPageViewModel?.pushCurrentState()
+                    landingPageViewModel?.pushCurrentState(ARTICLE_PAGE_PATH)
                     navController.navigate("$NEWS_HOME_PAGE/${it.primaryKey}") {
                         launchSingleTop = true
                     }

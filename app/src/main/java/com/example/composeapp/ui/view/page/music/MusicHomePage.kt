@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
-const val MUSIC_HOME_PAGE = "MusicHomePage"
+const val MUSIC_HOME_PAGE = "Music"
 
 @Composable
 fun MusicHomePage() {

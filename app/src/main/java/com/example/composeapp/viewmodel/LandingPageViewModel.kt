@@ -7,10 +7,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.composeapp.ui.view.components.DrawerItem
+import com.example.composeapp.ui.view.page.movies.MOVIE_HOME_PAGE
+import com.example.composeapp.ui.view.page.music.MUSIC_HOME_PAGE
 import com.example.composeapp.ui.view.page.news.ALERT_PAGE
 import com.example.composeapp.ui.view.page.news.NEWS_HOME_PAGE
 import com.example.composeapp.ui.view.page.news.PROFILE_PAGE
 import com.example.composeapp.ui.view.page.news.SHOPPING_PAGE
+import com.example.composeapp.ui.view.page.photos.PHOTO_HOME_PAGE
+import com.example.composeapp.ui.view.page.settings.SETTINGS_PAGE
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -30,43 +34,44 @@ class LandingPageViewModel @Inject constructor() : ViewModel() {
 
     val state: MutableStateFlow<UiState> = MutableStateFlow(UiState())
     private val appbarState = MutableStateFlow(AppBarState())
-    private val tabbedPageState = MutableStateFlow(TabbedPageState())
     private val searchFieldState = MutableStateFlow(SearchFieldState())
-    private val currentPageState = MutableStateFlow(TopLevelPage.NEWS)
+    private val currentPageState = MutableStateFlow(TabbedPageState())
 
     @OptIn(ExperimentalMaterial3Api::class)
     private val drawerState = MutableStateFlow(MenuDrawerState())
 
-    private val uiStateStack: Stack<UiState> = Stack()
+    private val uiStateStack: Stack<Pair<String, UiState>> = Stack()
 
-    private var updateStateJob : Job? = null
+    private var updateStateJob: Job? = null
 
     init {
         updateStateJob = viewModelScope.launch {
             withContext(
                 Dispatchers.Main
             ) {
-                combineStates(appbarState,tabbedPageState,searchFieldState,currentPageState,drawerState)
+                combineStates(
+                    appbarState,
+                    searchFieldState,
+                    currentPageState,
+                    drawerState
+                )
             }
         }
     }
 
     private suspend fun combineStates(
         appbarState: MutableStateFlow<AppBarState>,
-        tabbedPageState: MutableStateFlow<TabbedPageState>,
         searchFieldState: MutableStateFlow<SearchFieldState>,
-        currentPageState: MutableStateFlow<TopLevelPage>,
+        currentPageState: MutableStateFlow<TabbedPageState>,
         drawerState: MutableStateFlow<MenuDrawerState>
     ) {
         combine(
             appbarState,
-            tabbedPageState,
             searchFieldState,
             drawerState,
             currentPageState
-        ) { appBar, tabPage, search, drawer, currentPage ->
+        ) { appBar, search, drawer, currentPage ->
             UiState(
-                tabbedPageState = tabPage,
                 appbarState = appBar,
                 searchFieldState = search,
                 drawerState = drawer,
@@ -78,39 +83,55 @@ class LandingPageViewModel @Inject constructor() : ViewModel() {
             }
     }
 
-    fun pushCurrentState() {
-            uiStateStack.push(state.value.copy())
+
+    fun pushCurrentState(destination: String) {
+        if (uiStateStack.isEmpty() || (uiStateStack.peek().first != destination
+                    && state.value.currentPageState.currentTab.name != destination)
+        ) {
+            uiStateStack.push(Pair(destination, state.value.copy()))
+        }
     }
 
     fun onBack() {
         updateStateJob?.cancel()
         updateStateJob = viewModelScope.launch {
             withContext(Dispatchers.Main) {
-                if(!uiStateStack.isEmpty()){
-                    val lastState = uiStateStack.pop()
-                    setActiveTab(lastState.tabbedPageState.newsPageTabState)
-                    setCurrentPage(lastState.currentPageState)
-                    setAppBarState(lastState.appbarState.topBarVisible,lastState.appbarState.bottomVarVisible)
+                if (!uiStateStack.isEmpty()) {
+                    val lastState = uiStateStack.pop().second
+                    setCurrentPageState(lastState.currentPageState.currentTab,lastState.currentPageState.page)
+                    setAppBarState(
+                        lastState.appbarState.topBarVisible,
+                        lastState.appbarState.bottomVarVisible
+                    )
                     setSearchText(lastState.searchFieldState.searchText)
                     setSearchViewVisible(lastState.searchFieldState.searchViewVisible)
                     setSelectDrawerItem(lastState.drawerState.selectedLabel)
-                    combineStates(appbarState,tabbedPageState,searchFieldState,currentPageState,drawerState)
+                    combineStates(
+                        appbarState,
+                        searchFieldState,
+                        currentPageState,
+                        drawerState
+                    )
                 }
             }
         }
     }
 
+    private fun  setCurrentPageState(tab: BottomTab,page: TopLevelPage){
+        val state = TabbedPageState(page,tab)
+        currentPageState.value = state
+    }
+
     fun setActiveTab(tab: BottomTab) {
-        val state = TabbedPageState()
-        when (currentPageState.value) {
-            TopLevelPage.NEWS -> state.newsPageTabState = tab
-            else -> {}
+        if(state.value.currentPageState.page.bottomTabs.contains(tab)){
+            val state = TabbedPageState(state.value.currentPageState.page, tab)
+            currentPageState.value = state
         }
-        tabbedPageState.value = state
     }
 
     fun setCurrentPage(page: TopLevelPage) {
-        currentPageState.value = page
+        val state = TabbedPageState(page, state.value.currentPageState.currentTab)
+        currentPageState.value = state
     }
 
     fun setAppBarState(displayingTopBar: Boolean, displayingBottomBar: Boolean) {
@@ -126,7 +147,10 @@ class LandingPageViewModel @Inject constructor() : ViewModel() {
     }
 
     fun setSearchViewVisible(visible: Boolean) {
-        val state = SearchFieldState(searchViewVisible = visible)
+        val state = SearchFieldState(
+            searchText = searchFieldState.value.searchText,
+            searchViewVisible = visible
+        )
         if (!visible)
             state.searchText = ""
         searchFieldState.value = state
@@ -148,11 +172,10 @@ class LandingPageViewModel @Inject constructor() : ViewModel() {
     }
 
     data class UiState @OptIn(ExperimentalMaterial3Api::class) constructor(
-        val tabbedPageState: TabbedPageState = TabbedPageState(),
         val appbarState: AppBarState = AppBarState(),
         val searchFieldState: SearchFieldState = SearchFieldState(),
         val drawerState: MenuDrawerState = MenuDrawerState(),
-        val currentPageState: TopLevelPage = TopLevelPage.NEWS
+        val currentPageState: TabbedPageState = TabbedPageState()
     )
 
     data class AppBarState(
@@ -166,21 +189,32 @@ class LandingPageViewModel @Inject constructor() : ViewModel() {
     )
 
     enum class BottomTab(val destination: String) {
-        NEWS_HOME(NEWS_HOME_PAGE),
-        NEWS_SHOPPING(SHOPPING_PAGE),
-        NEWS_ALERT(ALERT_PAGE),
-        NEWS_PROFILE(PROFILE_PAGE)
+        NEWS_HOME(destination = NEWS_HOME_PAGE),
+        NEWS_SHOPPING(destination = SHOPPING_PAGE),
+        NEWS_ALERT(destination = ALERT_PAGE),
+        NEWS_PROFILE(destination = PROFILE_PAGE)
     }
 
-    enum class TopLevelPage(val label: String) {
-        NEWS("News"),
-        MOVIE("Movies"),
-        PHOTOS("Photos"),
-        MUSIC("Music"),
-        SETTINGS("Settings")
+    enum class TopLevelPage(
+        val label: String,
+        val bottomTabs: List<BottomTab> = emptyList()
+    ) {
+        NEWS(
+            label = NEWS_HOME_PAGE,
+            bottomTabs = listOf(
+                BottomTab.NEWS_HOME,
+                BottomTab.NEWS_SHOPPING,
+                BottomTab.NEWS_ALERT,
+                BottomTab.NEWS_PROFILE
+            )
+        ),
+        MOVIE(label = MOVIE_HOME_PAGE),
+        PHOTOS(label = PHOTO_HOME_PAGE),
+        MUSIC(label = MUSIC_HOME_PAGE),
+        SETTINGS(label = SETTINGS_PAGE);
     }
 
-    data class TabbedPageState(var newsPageTabState: BottomTab = BottomTab.NEWS_HOME)
+    data class TabbedPageState(val page: TopLevelPage = TopLevelPage.NEWS, val currentTab: BottomTab = BottomTab.NEWS_HOME)
 
     data class MenuDrawerState(
         var visibleState: DrawerState = DrawerState(DrawerValue.Closed),

@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
-const val MOVIE_HOME_PAGE = "MovieHomePage"
+const val MOVIE_HOME_PAGE = "Movies"
 
 @Composable
 fun MovieHomePage(){

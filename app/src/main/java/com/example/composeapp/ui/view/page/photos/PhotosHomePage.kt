@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
-const val PHOTO_HOME_PAGE = "PhotoHomePage"
+const val PHOTO_HOME_PAGE = "Photos"
 
 @Composable
 fun PhotoHomePage() {

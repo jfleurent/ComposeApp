@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
-const val SETTINGS_PAGE = "SettingsPage"
+const val SETTINGS_PAGE = "Settings"
 
 @Composable
 fun SettingsPage() {
