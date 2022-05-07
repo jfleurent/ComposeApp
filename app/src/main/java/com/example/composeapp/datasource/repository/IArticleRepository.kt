@@ -30,5 +30,5 @@ interface IArticleRepository {
     suspend fun insertArticle(article: Article)
     suspend fun getArticleFromId(id: Long): Flow<Article>
     suspend fun updateArticle(article: Article)
-    fun searchArticles(searchTerm : String, tag: String) : List<Article>
+    suspend fun searchArticles(searchTerm : String, tag: String) : List<Article>
 }

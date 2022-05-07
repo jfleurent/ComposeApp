@@ -45,5 +45,5 @@ interface ArticleDao {
             "AND (title LIKE :searchTerm " +
             "OR content LIKE :searchTerm " +
             "OR author LIKE :searchTerm) ")
-    fun getLocalSearchFlow(searchTerm: String, tag: String): List<Article>
+    suspend fun getLocalSearchFlow(searchTerm: String, tag: String): List<Article>
 }

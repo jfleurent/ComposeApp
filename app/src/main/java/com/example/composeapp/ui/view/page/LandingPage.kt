@@ -1,15 +1,11 @@
 package com.example.composeapp.ui.view.page
 
-import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,7 +25,7 @@ import com.example.composeapp.ui.view.page.photos.PhotoHomePage
 import com.example.composeapp.ui.view.page.settings.SETTINGS_PAGE
 import com.example.composeapp.ui.view.page.settings.SettingsPage
 import com.example.composeapp.viewmodel.ArticlePageViewModel
-import com.example.composeapp.viewmodel.HomePageViewModel
+import com.example.composeapp.viewmodel.NewsHomePageViewModel
 import com.example.composeapp.viewmodel.LandingPageViewModel
 
 const val LANDING_PAGE = "LandingPage"
@@ -37,7 +33,7 @@ const val LANDING_PAGE = "LandingPage"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LandingPage(
-    homePageViewModel: HomePageViewModel? = null,
+    newsHomePageViewModel: NewsHomePageViewModel? = null,
     articlePageViewModel: ArticlePageViewModel? = null,
     landingPageViewModel: LandingPageViewModel? = null,
     onBackPressed: () -> Unit = {}
@@ -145,7 +141,7 @@ fun LandingPage(
                         onVisibilityChange = { landingPageViewModel?.setSearchViewVisible(!it) },
                         onSearch = {
                             when (state.value.currentPageState.page) {
-                                LandingPageViewModel.TopLevelPage.NEWS -> homePageViewModel?.searchArticles(
+                                LandingPageViewModel.TopLevelPage.NEWS -> newsHomePageViewModel?.searchArticles(
                                     it
                                 )
                                 else -> {}
@@ -190,7 +186,7 @@ fun LandingPage(
                             displayingTopBar = true,
                             displayingBottomBar = true
                         )
-                        NewsHomePage(navController, homePageViewModel, landingPageViewModel)
+                        NewsHomePage(navController, newsHomePageViewModel, landingPageViewModel)
                     }
                     composable(ALERT_PAGE) {
                         landingPageViewModel?.setAppBarState(

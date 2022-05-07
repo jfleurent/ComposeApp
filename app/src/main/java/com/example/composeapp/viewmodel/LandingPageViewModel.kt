@@ -83,7 +83,6 @@ class LandingPageViewModel @Inject constructor() : ViewModel() {
             }
     }
 
-
     fun pushCurrentState(destination: String) {
         if (uiStateStack.isEmpty() || (uiStateStack.peek().first != destination
                     && state.value.currentPageState.currentTab.name != destination)

@@ -15,7 +15,7 @@ import com.example.composeapp.ui.theme.ComposeAppTheme
 import com.example.composeapp.ui.view.page.*
 import com.example.composeapp.ui.view.page.news.ArticlePage
 import com.example.composeapp.viewmodel.ArticlePageViewModel
-import com.example.composeapp.viewmodel.HomePageViewModel
+import com.example.composeapp.viewmodel.NewsHomePageViewModel
 import com.example.composeapp.viewmodel.LandingPageViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -28,7 +28,7 @@ val testArticle = Article(
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val articlePageViewModel: ArticlePageViewModel by viewModels()
-    private val homePageViewModel: HomePageViewModel by viewModels()
+    private val newsHomePageViewModel: NewsHomePageViewModel by viewModels()
     private val landingPageViewModel : LandingPageViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     LandingPage(
-                        homePageViewModel = homePageViewModel,
+                        newsHomePageViewModel = newsHomePageViewModel,
                         articlePageViewModel = articlePageViewModel,
                         landingPageViewModel = landingPageViewModel,
                     ) {

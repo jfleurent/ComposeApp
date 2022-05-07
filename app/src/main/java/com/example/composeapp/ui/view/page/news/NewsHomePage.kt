@@ -29,7 +29,7 @@ import com.example.composeapp.ui.view.*
 import com.example.composeapp.ui.view.components.*
 import com.example.composeapp.util.ellipsis
 import com.example.composeapp.util.toLocalDataTime
-import com.example.composeapp.viewmodel.HomePageViewModel
+import com.example.composeapp.viewmodel.NewsHomePageViewModel
 import com.example.composeapp.viewmodel.LandingPageViewModel
 
 const val NEWS_HOME_PAGE = "News"
@@ -230,13 +230,13 @@ fun RecommendedList(
 @Composable
 fun NewsHomePage(
     navController: NavController,
-    homePageViewModel: HomePageViewModel? = null,
+    newsHomePageViewModel: NewsHomePageViewModel? = null,
     landingPageViewModel: LandingPageViewModel? = null
 ) {
-    val state: State<HomePageViewModel.UiState> = homePageViewModel?.state?.collectAsState()
+    val state: State<NewsHomePageViewModel.UiState> = newsHomePageViewModel?.state?.collectAsState()
         ?: remember {
             mutableStateOf(
-                HomePageViewModel.UiState(
+                NewsHomePageViewModel.UiState(
                     latestFeed = listOf(testArticle, testArticle, testArticle),
                     recommendedFeed = listOf(testArticle, testArticle, testArticle)
                 )
@@ -250,27 +250,27 @@ fun NewsHomePage(
                     TabItem.TextTabItem(
                         label = "Latest",
                         textSize = 20,
-                        onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.LATEST) }),
+                        onClick = { newsHomePageViewModel?.setActiveTab(NewsHomePageViewModel.TabPage.LATEST) }),
                     TabItem.TextTabItem(
                         label = "Decorative",
                         textSize = 20,
-                        onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.DECORATIVE) }),
+                        onClick = { newsHomePageViewModel?.setActiveTab(NewsHomePageViewModel.TabPage.DECORATIVE) }),
                     TabItem.TextTabItem(
                         label = "Music",
                         textSize = 20,
-                        onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.MUSIC) }),
+                        onClick = { newsHomePageViewModel?.setActiveTab(NewsHomePageViewModel.TabPage.MUSIC) }),
                     TabItem.TextTabItem(
                         label = "Style",
                         textSize = 20,
-                        onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.STYLE) }),
+                        onClick = { newsHomePageViewModel?.setActiveTab(NewsHomePageViewModel.TabPage.STYLE) }),
                     TabItem.TextTabItem(
                         label = "Technology",
                         textSize = 20,
-                        onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.TECHNOLOGY) }),
+                        onClick = { newsHomePageViewModel?.setActiveTab(NewsHomePageViewModel.TabPage.TECHNOLOGY) }),
                     TabItem.TextTabItem(
                         label = "Business",
                         textSize = 20,
-                        onClick = { homePageViewModel?.setActiveTab(HomePageViewModel.TabPage.BUSINESS) }),
+                        onClick = { newsHomePageViewModel?.setActiveTab(NewsHomePageViewModel.TabPage.BUSINESS) }),
                 )
             )
         }
@@ -286,7 +286,7 @@ fun NewsHomePage(
                     }
                 },
                 onFavorite = {
-                    homePageViewModel?.favoriteArticle(it)
+                    newsHomePageViewModel?.favoriteArticle(it)
                 })
         }
         item {
@@ -307,7 +307,7 @@ fun NewsHomePage(
                     }
                 },
                 onFavorite = {
-                    homePageViewModel?.favoriteArticle(it)
+                    newsHomePageViewModel?.favoriteArticle(it)
                 })
         }
     }

@@ -71,7 +71,6 @@ class ArticleRepository(
                     "Failed to get article list result:  ${errorBody()?.string()}"
                 )
             }
-
         }
     }
 
@@ -103,7 +102,7 @@ class ArticleRepository(
         articleDao.updateArticle(article)
     }
 
-    override fun searchArticles(searchTerm: String, tag: String): List<Article> {
+    override suspend fun searchArticles(searchTerm: String, tag: String): List<Article> {
         return articleDao.getLocalSearchFlow(searchTerm, tag)
     }
 }

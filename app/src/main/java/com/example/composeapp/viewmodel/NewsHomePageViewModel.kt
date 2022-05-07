@@ -1,6 +1,5 @@
 package com.example.composeapp.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.composeapp.datasource.model.Article
@@ -18,10 +17,10 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
-class HomePageViewModel @Inject constructor(private val repository: IArticleRepository) :
+class NewsHomePageViewModel @Inject constructor(private val repository: IArticleRepository) :
     ViewModel() {
 
-    private val TAG = HomePageViewModel::class.simpleName
+    private val TAG = NewsHomePageViewModel::class.simpleName
 
     val state: MutableStateFlow<UiState> = MutableStateFlow(UiState())
 
