@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,6 +30,10 @@ import androidx.compose.ui.unit.sp
 import com.example.composeapp.R
 import com.example.composeapp.ui.theme.ComposeAppTheme
 import kotlinx.coroutines.selects.select
+
+//Testing
+const val IMAGE_TAB_ITEM_PREFIX_TAG = "image_tab_item"
+const val TEXT_TAB_ITEM_PREFIX_TAG = "text_tab_item"
 
 sealed class TabItem {
     data class TextTabItem(
@@ -53,6 +58,7 @@ fun Tab(
     tabItem: TabItem.TextTabItem,
 ) {
     Button(
+        modifier = Modifier.testTag("${TEXT_TAB_ITEM_PREFIX_TAG}_${tabItem.label}"),
         onClick = tabItem.onClick ,
         colors = buttonColors(containerColor = Color.Transparent)
     ) {
@@ -81,6 +87,7 @@ fun ImageTab(
     tabItem: TabItem.ImageTabItem
 ) {
     Button(
+        modifier = Modifier.testTag("${IMAGE_TAB_ITEM_PREFIX_TAG}_${tabItem.label}"),
         onClick = tabItem.onClick ,
         colors = buttonColors(containerColor = Color.Transparent)
     ) {
@@ -104,11 +111,6 @@ fun ImageTab(
             )
         }
     }
-}
-
-private fun onTabItemClick(onClick: () -> Unit, onTabClick: () -> Unit) {
-    onClick.invoke()
-    onTabClick.invoke()
 }
 
 @Composable

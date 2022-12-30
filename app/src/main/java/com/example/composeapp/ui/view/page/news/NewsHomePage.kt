@@ -13,6 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
@@ -33,6 +34,13 @@ import com.example.composeapp.viewmodel.NewsHomePageViewModel
 import com.example.composeapp.viewmodel.LandingPageViewModel
 
 const val NEWS_HOME_PAGE = "News"
+
+//Testing
+const val NEWS_PAGE_TEST_TAG = "news_page_test_tag"
+const val NEWS_PAGE_TAB_ROW_TAG = "news_page_tab_row"
+const val NEWS_PAGE_LATEST_ARTICLES_TAG = "news_page_latest_articles"
+const val NEWS_PAGE_RECOMMENDED_TITLE_TAG = "news_page_recommended_title"
+const val NEWS_PAGE_RECOMMENDED_ARTICLES_TAG = "news_page_recommended_articles"
 
 @Composable
 fun ArticleItemList(
@@ -203,6 +211,7 @@ fun ArticleItem(
 
 @Composable
 fun RecommendedList(
+    modifier: Modifier = Modifier,
     articles: List<Article>,
     onNavigate: (Article) -> Unit,
     onFavorite: (Article) -> Unit
@@ -211,7 +220,7 @@ fun RecommendedList(
         ArticleCardWithImage(
             article = it,
             size = 360,
-            modifier = Modifier
+            modifier = modifier
                 .height(176.dp)
                 .padding(8.dp, 0.dp, 8.dp, 0.dp)
                 .fillMaxWidth(),
@@ -242,9 +251,10 @@ fun NewsHomePage(
                 )
             )
         }
-    LazyColumn {
+    LazyColumn(modifier = Modifier.testTag(NEWS_PAGE_TEST_TAG)) {
         item {
             TabRow(
+                modifier = Modifier.testTag(NEWS_PAGE_TAB_ROW_TAG),
                 selectedLabel = state.value.activeTab.label,
                 items = listOf(
                     TabItem.TextTabItem(
@@ -276,6 +286,7 @@ fun NewsHomePage(
         }
         item {
             ArticleItemList(
+                modifier = Modifier.testTag(NEWS_PAGE_LATEST_ARTICLES_TAG),
                 articles = state.value.latestFeed,
                 height = 240,
                 width = 360,
@@ -294,11 +305,12 @@ fun NewsHomePage(
                 text = "Recommended",
                 fontSize = 20.sp,
                 fontWeight = Bold,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(16.dp).testTag(NEWS_PAGE_RECOMMENDED_TITLE_TAG)
             )
         }
         item {
             RecommendedList(
+                modifier = Modifier.testTag(NEWS_PAGE_RECOMMENDED_ARTICLES_TAG),
                 articles = state.value.recommendedFeed,
                 onNavigate = {
                     landingPageViewModel?.pushCurrentState(ARTICLE_PAGE_PATH)

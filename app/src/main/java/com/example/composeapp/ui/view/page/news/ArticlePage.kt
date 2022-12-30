@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,15 +32,25 @@ import java.time.format.DateTimeFormatter
 const val ARTICLE_PATH = "article"
 const val ARTICLE_PAGE_PATH = "$NEWS_HOME_PAGE/{$ARTICLE_PATH}"
 
+//Testing
+const val NEWS_ARTICLE_PAGE_TEST_TAG = "news_article_test_tag"
+const val NEWS_ARTICLE_APP_BAR_TAG = "news_article_app_bar"
+const val NEWS_ARTICLE_TITLE_TAG = "news_article_title"
+const val NEWS_ARTICLE_AUTHOR_TAG = "news_article_author"
+const val NEWS_ARTICLE_CONTENT_TAG = "news_article_content"
+
 @Composable
 fun AppBar(
+    modifier: Modifier = Modifier,
     height: Int,
     painter: Painter,
     article: Article? = null,
     onFavorite: (Article) -> Unit = {},
     backPress: () -> Unit = {}
 ) {
-    Box(Modifier.height(height.dp)) {
+    Box(modifier = modifier
+        .height(height.dp)
+        .testTag(NEWS_ARTICLE_APP_BAR_TAG)) {
         RoundCornerImage(
             painter = painter,
             modifier = Modifier.size((height - 16).dp)
@@ -68,7 +79,7 @@ fun ArticleTitle(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth().testTag(NEWS_ARTICLE_TITLE_TAG)
     ) {
         Text(
             text = title,
@@ -82,6 +93,7 @@ fun ArticleTitle(
 
 @Composable
 fun ArticleAuthor(
+    modifier: Modifier = Modifier,
     name: String,
     timeCreated: LocalDateTime?,
     authorImagePainter: Painter,
@@ -89,6 +101,7 @@ fun ArticleAuthor(
     maxAuthorNameLength: Int = 10
 ) {
     Row(
+        modifier = modifier.testTag(NEWS_ARTICLE_AUTHOR_TAG),
         verticalAlignment = Alignment.CenterVertically
     ) {
         RoundImage(
@@ -123,8 +136,7 @@ fun ArticleAuthor(
 fun ArticleContent(message: String, modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-
+        modifier = modifier.testTag(NEWS_ARTICLE_CONTENT_TAG)
     ) {
         Text(
             text = message
@@ -140,6 +152,7 @@ fun ArticlePage(
 ) {
     Column(
         modifier = Modifier.verticalScroll(ScrollState(0))
+            .testTag(NEWS_ARTICLE_PAGE_TEST_TAG)
     ) {
         val state: State<ArticlePageViewModel.UiState> =
             articlePageViewModel?.state?.collectAsState() ?: remember {

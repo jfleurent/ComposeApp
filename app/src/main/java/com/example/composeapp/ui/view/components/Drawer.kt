@@ -2,6 +2,7 @@ package com.example.composeapp.ui.view.components
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -12,12 +13,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.composeapp.R
+
+//Testing
+const val DRAWER_ITEM_PREFIX_TAG = "drawer_item"
 
 data class DrawerContent(
     val header: @Composable () -> Unit,
@@ -45,6 +50,7 @@ fun DrawerContentLayout(
             )
             list.forEach { item ->
                 Box(modifier = Modifier
+                    .testTag("${DRAWER_ITEM_PREFIX_TAG}_${item.label}")
                     .fillMaxWidth()
                     .background(
                         if (selectedLabel == item.label)
@@ -52,11 +58,14 @@ fun DrawerContentLayout(
                         else
                             MaterialTheme.colorScheme.background
                     )
-                    .clickable {
-                        item.onClick()
-                        onDrawerItemSelected(item.label)
-                    }) {
-
+                    .selectable(
+                        selected = selectedLabel == item.label,
+                        onClick = {
+                            item.onClick()
+                            onDrawerItemSelected(item.label)
+                        }
+                    )
+                ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier

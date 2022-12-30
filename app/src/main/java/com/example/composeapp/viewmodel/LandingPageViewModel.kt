@@ -217,6 +217,6 @@ class LandingPageViewModel @Inject constructor() : ViewModel() {
 
     data class MenuDrawerState(
         var visibleState: DrawerState = DrawerState(DrawerValue.Closed),
-        var selectedLabel: String = "News"
+        var selectedLabel: String = NEWS_HOME_PAGE
     )
 }

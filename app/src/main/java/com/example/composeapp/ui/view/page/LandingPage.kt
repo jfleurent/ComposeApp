@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,6 +31,21 @@ import com.example.composeapp.viewmodel.LandingPageViewModel
 
 const val LANDING_PAGE = "LandingPage"
 
+//Testing
+const val LANDING_PAGE_TEST_TAG = "landing_page_test_tag"
+const val LANDING_PAGE_DRAWER_CONTENT_TAG = "landing_page_drawer_content"
+const val LANDING_PAGE_CONTENT_BOX_TAG = "landing_page_content_box"
+const val LANDING_PAGE_SCAFFOLD_TAG = "landing_page_content_scaffold"
+const val LANDING_PAGE_APP_BAR_TAG = "landing_page_app_bar_top_bar"
+const val LANDING_PAGE_NEWS_NAVIGATION_BAR_TAG = "landing_page_new_navigation_bar"
+const val LANDING_PAGE_NAV_HOST = "landing_page_nav_host"
+const val LANDING_PAGE_FAB = "landing_page_fab"
+const val LANDING_PAGE_NAV_BUTTON_TAG = "landing_page_nav_button"
+const val LANDING_PAGE_SEARCH_BUTTON_TAG = "landing_page_search_button"
+
+ val add = fun(x : Int, y: Int) = x - y
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LandingPage(
@@ -45,9 +61,12 @@ fun LandingPage(
         }
     val context = LocalContext.current
     ModalNavigationDrawer(
+        modifier = Modifier.testTag(LANDING_PAGE_TEST_TAG),
         drawerContent = {
             DrawerContentLayout(
-                modifier = Modifier.padding(0.dp, 16.dp, 0.dp, 0.dp),
+                modifier = Modifier
+                    .padding(0.dp, 16.dp, 0.dp, 0.dp)
+                    .testTag(LANDING_PAGE_DRAWER_CONTENT_TAG),
                 selectedLabel = state.value.drawerState.selectedLabel,
                 content = DrawerContent(
                     header = {
@@ -65,7 +84,7 @@ fun LandingPage(
                                 onClick = {
                                     landingPageViewModel?.pushCurrentState(LandingPageViewModel.TopLevelPage.NEWS.label)
                                     landingPageViewModel?.setCurrentPage(LandingPageViewModel.TopLevelPage.NEWS)
-                                    state.value.currentPageState.currentTab?.run {
+                                    state.value.currentPageState.currentTab.run {
                                         navController.navigate(
                                             destination
                                         ) {
@@ -131,30 +150,34 @@ fun LandingPage(
         },
         drawerState = state.value.drawerState.visibleState
     ) {
-        Box {
+        Box(modifier = Modifier.testTag(LANDING_PAGE_CONTENT_BOX_TAG)) {
             Scaffold(
+                modifier = Modifier.testTag(LANDING_PAGE_SCAFFOLD_TAG),
                 topBar = {
-                    if (state.value.appbarState.topBarVisible) AppBar(
-                        searchText = state.value.searchFieldState.searchText,
-                        visible = state.value.searchFieldState.searchViewVisible,
-                        onTextChange = { landingPageViewModel?.setSearchText(it) },
-                        onVisibilityChange = { landingPageViewModel?.setSearchViewVisible(!it) },
-                        onSearch = {
-                            when (state.value.currentPageState.page) {
-                                LandingPageViewModel.TopLevelPage.NEWS -> newsHomePageViewModel?.searchArticles(
-                                    it
-                                )
-                                else -> {}
-                            }
-                        },
-                        onDrawerOpen = { landingPageViewModel?.setDrawerOpenState() }
-                    )
+                    if (state.value.appbarState.topBarVisible)
+                        AppBar(
+                            modifier = Modifier.testTag(LANDING_PAGE_APP_BAR_TAG),
+                            searchText = state.value.searchFieldState.searchText,
+                            visible = state.value.searchFieldState.searchViewVisible,
+                            onTextChange = { landingPageViewModel?.setSearchText(it) },
+                            onVisibilityChange = { landingPageViewModel?.setSearchViewVisible(!it) },
+                            onSearch = {
+                                when (state.value.currentPageState.page) {
+                                    LandingPageViewModel.TopLevelPage.NEWS -> newsHomePageViewModel?.searchArticles(
+                                        it
+                                    )
+                                    else -> {}
+                                }
+                            },
+                            onDrawerOpen = { landingPageViewModel?.setDrawerOpenState() }
+                        )
                 },
                 bottomBar = {
                     if (state.value.appbarState.bottomVarVisible)
                         when (state.value.currentPageState.page) {
                             LandingPageViewModel.TopLevelPage.NEWS -> {
                                 NewsBottomNavigation(
+                                    modifier = Modifier.testTag(LANDING_PAGE_NEWS_NAVIGATION_BAR_TAG),
                                     selectedLabel = state.value.currentPageState.currentTab.name,
                                     onTabSelected = {
                                         landingPageViewModel?.pushCurrentState(
@@ -169,13 +192,12 @@ fun LandingPage(
                                     }
                                 )
                             }
-
                             else -> {}
                         }
                 },
             ) {
                 NavHost(
-                    modifier = Modifier.padding(it),
+                    modifier = Modifier.padding(it).testTag(LANDING_PAGE_NAV_HOST),
                     navController = navController,
                     startDestination = NEWS_HOME_PAGE
                 ) {
@@ -264,6 +286,7 @@ fun LandingPage(
                     modifier = Modifier
                         .padding(32.dp, 0.dp, 32.dp, 32.dp)
                         .align(Alignment.BottomCenter)
+                        .testTag(LANDING_PAGE_FAB)
                 ) {
                     Toast.makeText(context, "Clicked on FAB", Toast.LENGTH_SHORT).show()
                 }
@@ -301,7 +324,8 @@ fun AppBar(
         ImageButton(
             modifier = Modifier
                 .padding(8.dp, 24.dp, 0.dp, 0.dp)
-                .align(Alignment.CenterStart),
+                .align(Alignment.CenterStart)
+                .testTag(LANDING_PAGE_NAV_BUTTON_TAG),
             size = 32,
             painter = painterResource(id = R.drawable.ic_nav_drawer),
             description = "Nav Drawer"
@@ -312,7 +336,8 @@ fun AppBar(
             modifier = Modifier
                 .fillMaxWidth(.6f)
                 .align(Alignment.CenterEnd)
-                .padding(8.dp, 24.dp, 0.dp, 0.dp),
+                .padding(8.dp, 24.dp, 0.dp, 0.dp)
+                .testTag(LANDING_PAGE_SEARCH_BUTTON_TAG),
             searchText = searchText,
             visible = visible,
             onTextChange = onTextChange,
@@ -324,11 +349,13 @@ fun AppBar(
 
 @Composable
 fun NewsBottomNavigation(
+    modifier: Modifier = Modifier,
     selectedLabel: String,
     onTabSelected: (LandingPageViewModel.BottomTab) -> Unit,
     onNavigate: (String) -> Unit
 ) {
     BottomNavigation(
+        modifier = modifier,
         selectedLabel = selectedLabel,
         items = listOf(
             TabItem.ImageTabItem(
