@@ -43,9 +43,6 @@ const val LANDING_PAGE_FAB = "landing_page_fab"
 const val LANDING_PAGE_NAV_BUTTON_TAG = "landing_page_nav_button"
 const val LANDING_PAGE_SEARCH_BUTTON_TAG = "landing_page_search_button"
 
- val add = fun(x : Int, y: Int) = x - y
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LandingPage(

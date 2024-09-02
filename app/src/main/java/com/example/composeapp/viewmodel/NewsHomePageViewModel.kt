@@ -30,8 +30,8 @@ class NewsHomePageViewModel @Inject constructor(private val repository: IArticle
 
     private val recommendedFeed: MutableStateFlow<List<Article>> = MutableStateFlow(emptyList())
 
-    var recommendedFeedJob: Job? = null
-    var latestFeedJob: Job? = null
+    private var recommendedFeedJob: Job? = null
+    private var latestFeedJob: Job? = null
 
     init {
         setActiveTab(TabPage.LATEST)
